@@ -1,5 +1,5 @@
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
-import React from "react";
+import { Text, TouchableOpacity, ViewStyle } from 'react-native';
+import React from 'react';
 
 interface ButtonProps {
   title: string;
@@ -16,5 +16,3 @@ const Button = (props: ButtonProps) => {
 };
 
 export default Button;
-
-const styles = StyleSheet.create({});

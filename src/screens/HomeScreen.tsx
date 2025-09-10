@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,18 +10,17 @@ import {
   Alert,
   FlatList,
   Modal,
-} from "react-native";
-import SkeletonGrid from "../components/SkeletonGrid";
-import { scale, windowWidth } from "../utils/dimen";
-import ImageModal from "../components/ImageModal";
-import Header from "../components/Header";
-import { useTheme } from "../hooks/useTheme";
-import { FetchOptions, ImageItem, PaginatedResponse, SortBy as SortByType } from "../types";
-import { imageApi } from "../service/api";
-import SortOption from "../components/SortOption";
-import { Image } from "expo-image";
-import { Data } from "../utils/temp";
-import { unstable_batchedUpdates } from "react-native";
+  unstable_batchedUpdates,
+} from 'react-native';
+import SkeletonGrid from '../components/SkeletonGrid';
+import { scale, windowWidth } from '../utils/dimen';
+import ImageModal from '../components/ImageModal';
+import Header from '../components/Header';
+import { useTheme } from '../hooks/useTheme';
+import { FetchOptions, ImageItem, PaginatedResponse, SortBy as SortByType } from '../types';
+import { imageApi } from '../service/api';
+import SortOption from '../components/SortOption';
+import { Image } from 'expo-image';
 
 const ITEM_HEIGHT = (windowWidth - scale(48)) / 3;
 
@@ -41,7 +40,6 @@ const HomeScreen = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(0);
-  const [hasMore, setHasMore] = useState<boolean>(true);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -75,13 +73,17 @@ const HomeScreen = () => {
 
       unstable_batchedUpdates(() => {
         setData(
-          result.images.map((item) => ({ id: item.id, thumbnail_url: item.thumbnail_url, url: item.img_url ?? "" }))
+          result.images.map(item => ({
+            id: item.id,
+            thumbnail_url: item.thumbnail_url,
+            url: item.img_url ?? '',
+          }))
         );
         setCurrentPage(0);
-        setHasMore(result.hasMore);
       });
     } catch (err) {
-      setError("Failed to load images");
+      console.error(err);
+      setError('Failed to load images');
     } finally {
       setIsloading(false);
     }
@@ -101,12 +103,19 @@ const HomeScreen = () => {
       });
 
       unstable_batchedUpdates(() => {
-        setData((prev) => [...prev, ...result.images]);
+        setData(prev => [
+          ...prev,
+          ...result.images.map(item => ({
+            id: item.id,
+            thumbnail_url: item.thumbnail_url,
+            url: item.img_url ?? '',
+          })),
+        ]);
         setCurrentPage(nextPage);
-        setHasMore(result.hasMore);
       });
     } catch (err) {
-      Alert.alert("Error", "Failed to load more images");
+      console.error(err);
+      Alert.alert('Error', 'Failed to load more images');
     } finally {
       setLoadingMore(false);
     }
@@ -128,7 +137,10 @@ const HomeScreen = () => {
       setAscending(newAscending);
       setShowSortOptions(false);
     });
-    await fetchInitialData(true, { ascending: newAscending, sortBy: newSortBy });
+    await fetchInitialData(true, {
+      ascending: newAscending,
+      sortBy: newSortBy,
+    });
   }, []);
 
   useEffect(() => {
@@ -141,13 +153,16 @@ const HomeScreen = () => {
         style={[styles.subcontainer, { backgroundColor: colors.card }]}
         activeOpacity={0.8}
         onPress={() => {
+          console.info(item.thumbnail_url, index);
           setSelectedImageIndex(index);
         }}
       >
         <Image
-          cachePolicy='disk'
-          priority='normal'
-          contentFit='cover'
+          cachePolicy="none"
+          priority="high"
+          useAppleWebpCodec
+          onError={err => console.info(index, err)}
+          contentFit="cover"
           source={{ uri: item.thumbnail_url }}
           style={styles.image}
         />
@@ -173,7 +188,7 @@ const HomeScreen = () => {
     if (!loadingMore) return null;
     return (
       <View style={styles.footer}>
-        <ActivityIndicator size='large' color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.footerText, { color: colors.secondaryText }]}>Loading more...</Text>
       </View>
     );
@@ -188,7 +203,7 @@ const HomeScreen = () => {
       return (
         <View style={styles.centerWrapper}>
           <Text style={[styles.errorText, { color: colors.error }]}>⚠️ {error}</Text>
-          <Button title='Retry' onPress={handleRetry} />
+          <Button title="Retry" onPress={handleRetry} />
         </View>
       );
     }
@@ -197,7 +212,7 @@ const HomeScreen = () => {
       return (
         <View style={styles.centerWrapper}>
           <Text style={[styles.emptyText, { color: colors.secondaryText }]}>No images found</Text>
-          <Button title='Retry' onPress={handleRetry} />
+          <Button title="Retry" onPress={handleRetry} />
         </View>
       );
     }
@@ -205,7 +220,7 @@ const HomeScreen = () => {
     return (
       <FlatList
         data={data}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
         onEndReached={loadMoreData}
         onEndReachedThreshold={0.2}
@@ -226,7 +241,6 @@ const HomeScreen = () => {
         initialNumToRender={20}
         maxToRenderPerBatch={20}
         windowSize={7}
-        removeClippedSubviews={true}
         updateCellsBatchingPeriod={50}
         getItemLayout={(_, index) => ({
           length: ITEM_HEIGHT,
@@ -240,7 +254,7 @@ const HomeScreen = () => {
   return (
     <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={styles.headerWrapper}>
-        <Header title='Gallery' rightIcon='funnel' onRightPress={() => setShowSortOptions(true)} />
+        <Header title="Gallery" rightIcon="funnel" onRightPress={() => setShowSortOptions(true)} />
       </View>
 
       {renderSortOptions()}
@@ -249,11 +263,11 @@ const HomeScreen = () => {
       <Modal
         statusBarTranslucent
         visible={selectedImageIndex !== -1}
-        animationType='fade'
-        presentationStyle='fullScreen'
+        animationType="fade"
+        presentationStyle="fullScreen"
       >
         <ImageModal
-          images={data.map((img) => img.url)}
+          images={data.map(img => img.url)}
           initialIndex={selectedImageIndex}
           onClose={() => setSelectedImageIndex(-1)}
         />
@@ -276,31 +290,31 @@ const styles = StyleSheet.create({
     gap: scale(8),
   },
   flatlistColumn: {
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   headerWrapper: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: scale(16),
   },
   subcontainer: {
     width: ITEM_HEIGHT,
     height: ITEM_HEIGHT,
     borderRadius: scale(5),
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   image: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
   centerWrapper: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorText: {
     fontSize: scale(16),
     marginBottom: scale(10),
-    textAlign: "center",
+    textAlign: 'center',
     paddingHorizontal: scale(20),
   },
   emptyText: {
@@ -310,7 +324,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingVertical: scale(20),
     marginBottom: scale(32),
-    alignItems: "center",
+    alignItems: 'center',
   },
   footerText: {
     marginTop: scale(10),

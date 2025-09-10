@@ -1,6 +1,6 @@
-import { ApiResponse, FetchOptions, PaginatedResponse, SortBy } from "../types";
-import { API_CONFIG } from "../utils/constants";
-import { calculateDelay, sleep } from "../utils/helpers";
+import { ApiResponse, FetchOptions, PaginatedResponse, SortBy } from '../types';
+import { API_CONFIG } from '../utils/constants';
+import { calculateDelay, sleep } from '../utils/helpers';
 
 class ImageApiService {
   activeRequests = new Map<string, AbortController>();
@@ -15,7 +15,12 @@ class ImageApiService {
   }
 
   private buildUrl(options: FetchOptions = {}): string {
-    const { page = 0, pageSize = API_CONFIG.DEFAULT_PAGE_SIZE, sortBy = SortBy.DATE, ascending = true } = options;
+    const {
+      page = 0,
+      pageSize = API_CONFIG.DEFAULT_PAGE_SIZE,
+      sortBy = SortBy.DATE,
+      ascending = true,
+    } = options;
 
     const params = new URLSearchParams({
       event_id: API_CONFIG.EVENT_ID,
@@ -30,11 +35,14 @@ class ImageApiService {
   }
 
   cancelAllRequests(): void {
-    this.activeRequests.forEach((controller) => controller.abort());
+    this.activeRequests.forEach(controller => controller.abort());
     this.activeRequests.clear();
   }
 
-  async fetchWithTimeout(url: string, options: RequestInit & { timeout?: number } = {}): Promise<Response> {
+  async fetchWithTimeout(
+    url: string,
+    options: RequestInit & { timeout?: number } = {}
+  ): Promise<Response> {
     const { timeout = API_CONFIG.DEFAULT_TIMEOUT, ...fetchOptions } = options;
 
     const controller = new AbortController();
@@ -81,7 +89,7 @@ class ImageApiService {
         }
 
         // Don't retry on certain errors
-        if (lastError && lastError.name === "AbortError") {
+        if (lastError && lastError.name === 'AbortError') {
           throw error;
         }
 
@@ -106,9 +114,9 @@ class ImageApiService {
       const url = this.buildUrl(options);
 
       const response = await this.customFetch(url, {
-        method: "GET",
+        method: 'GET',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         timeout: options.timeout,
         signal: options.signal || controller.signal,

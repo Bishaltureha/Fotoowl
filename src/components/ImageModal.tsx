@@ -1,14 +1,29 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, Alert, Share, TouchableOpacity, StatusBar, ActivityIndicator } from "react-native";
-import { Gesture, GestureDetector, MouseButton } from "react-native-gesture-handler";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { useFavorites } from "../components/FavoritesContext";
-import * as FileSystem from "expo-file-system";
-import * as MediaLibrary from "expo-media-library";
-import { scale, windowHeight, windowWidth } from "../utils/dimen";
-import ActionBar from "../components/ActionBar";
-import { useTheme } from "../hooks/useTheme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React, { useEffect, useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Alert,
+  Share,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
+import {
+  Gesture,
+  GestureDetector,
+  Directions,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useFavorites } from '../components/FavoritesContext';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+import { scale, windowHeight, windowWidth } from '../utils/dimen';
+import ActionBar from '../components/ActionBar';
+import { useTheme } from '../hooks/useTheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 
 interface Props {
   images: string[];
@@ -36,12 +51,16 @@ const ImageModal = ({ images, initialIndex = 0, onClose }: Props) => {
   const inset = useSafeAreaInsets();
 
   useEffect(() => {
-    StatusBar.setHidden(true, "fade");
-    setCurrentIndex(initialIndex);
+    StatusBar.setHidden(true, 'fade');
+
     return () => {
-      StatusBar.setHidden(false, "fade");
+      StatusBar.setHidden(false, 'fade');
     };
   }, []);
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex]);
 
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
@@ -54,18 +73,20 @@ const ImageModal = ({ images, initialIndex = 0, onClose }: Props) => {
         scale.value = withTiming(2);
       }
     })
+    .enabled(!isLoading)
     .runOnJS(true);
 
   const pinch = Gesture.Pinch()
-    .onUpdate((e) => {
+    .onUpdate(e => {
       let newScale = e.scale * scale.value;
       newScale = Math.max(minZoom, Math.min(maxZoom, newScale));
       scale.value = newScale;
     })
+    .enabled(!isLoading)
     .runOnJS(true);
 
   const pan = Gesture.Pan()
-    .onUpdate((e) => {
+    .onUpdate(e => {
       if (isZoomed()) {
         translateX.value = lastTranslate.x + e.translationX;
         translateY.value = lastTranslate.y + e.translationY;
@@ -77,35 +98,42 @@ const ImageModal = ({ images, initialIndex = 0, onClose }: Props) => {
         lastTranslate.y = translateY.value;
       }
     })
+    .enabled(!isLoading)
     .runOnJS(true);
 
   // Fling gesture - left
   const flingLeft = Gesture.Fling()
-    .direction(MouseButton.LEFT)
+    .direction(Directions.LEFT)
     .onEnd(() => {
       if (!isZoomed()) {
         setIsLoading(true);
-        setCurrentIndex((index) => (index <= 0 ? 0 : index - 1));
+        setCurrentIndex(index => (index >= images.length - 1 ? images.length - 1 : index + 1));
       }
     })
+    .enabled(!isLoading)
     .runOnJS(true);
 
   // Fling gesture - right
   const flingRight = Gesture.Fling()
-    .direction(MouseButton.RIGHT)
+    .direction(Directions.RIGHT)
     .onEnd(() => {
       if (!isZoomed()) {
         setIsLoading(true);
-        setCurrentIndex((index) => (index >= images.length - 1 ? images.length - 1 : index + 1));
+        setCurrentIndex(index => (index <= 0 ? 0 : index - 1));
       }
     })
+    .enabled(!isLoading)
     .runOnJS(true);
 
   // Combine gestures
   const gesture = Gesture.Simultaneous(Gesture.Race(flingLeft, flingRight), doubleTap, pan, pinch);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateX: translateX.value }, { translateY: translateY.value }],
+    transform: [
+      { scale: scale.value },
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+    ],
   }));
 
   // Share image
@@ -115,7 +143,8 @@ const ImageModal = ({ images, initialIndex = 0, onClose }: Props) => {
         message: `Check out this image!\n${images[currentIndex]}`,
       });
     } catch (error) {
-      Alert.alert("Error", "Unable to share image");
+      console.error(error);
+      Alert.alert('Error', 'Unable to share image');
     }
   };
 
@@ -126,63 +155,71 @@ const ImageModal = ({ images, initialIndex = 0, onClose }: Props) => {
       if (!imageUrl) return;
 
       const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission Denied", "Cannot save image without permission");
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Cannot save image without permission');
         return;
       }
 
-      const fileUri = FileSystem.cacheDirectory + "downloaded.jpg";
+      const fileUri = FileSystem.cacheDirectory + 'downloaded.jpg';
       const download = await FileSystem.downloadAsync(imageUrl, fileUri);
       const asset = await MediaLibrary.createAssetAsync(download.uri);
-      await MediaLibrary.createAlbumAsync("Download", asset, false);
+      await MediaLibrary.createAlbumAsync('Download', asset, false);
 
-      Alert.alert("Saved", "Image has been saved to your gallery.");
+      Alert.alert('Saved', 'Image has been saved to your gallery.');
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Unable to save image");
+      Alert.alert('Error', 'Unable to save image');
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[styles.headerContainer, { marginTop: inset.top }]}
-      >
-        <TouchableOpacity style={[styles.closeBtn, { backgroundColor: colors.card }]} onPress={onClose}>
-          <Text style={[styles.closeText, { color: colors.text }]}>✕</Text>
-        </TouchableOpacity>
+    <>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.headerContainer, { marginTop: inset.top }]}>
+          <TouchableOpacity
+            style={[styles.closeBtn, { backgroundColor: colors.card }]}
+            onPress={onClose}
+          >
+            <Text style={[styles.closeText, { color: colors.text }]}>✕</Text>
+          </TouchableOpacity>
 
-        <View style={styles.pagination}>
-          <Text style={styles.paginationText}>
-            {currentIndex + 1} / {images.length}
-          </Text>
-        </View>
-      </View>
-
-      <View style={StyleSheet.absoluteFillObject}>
-        <GestureDetector gesture={gesture}>
-          <Animated.Image
-            onLoadStart={() => setIsLoading(true)}
-            onLoad={() => setIsLoading(false)}
-            source={{ uri: images[currentIndex] }}
-            style={[styles.fullImage, animatedStyle]}
-            resizeMode='contain'
-          />
-        </GestureDetector>
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size='large' color={colors.activeTint} />
+          <View style={styles.pagination}>
+            <Text style={styles.paginationText}>
+              {currentIndex + 1} / {images.length}
+            </Text>
           </View>
-        )}
-      </View>
+        </View>
 
-      <ActionBar
-        isFavorite={isFavorite(images[currentIndex])}
-        onFavorite={() => toggleFavorite(images[currentIndex])}
-        onShare={handleShare}
-        onSave={handleSave}
-      />
-    </View>
+        <GestureHandlerRootView style={StyleSheet.absoluteFillObject}>
+          <GestureDetector gesture={gesture}>
+            <Animated.View style={[styles.fullImage, animatedStyle]}>
+              <Image
+                testID="modal-image"
+                cachePolicy="disk"
+                priority="normal"
+                onLoadStart={() => setIsLoading(true)}
+                onLoad={() => setIsLoading(false)}
+                source={{ uri: images[currentIndex] }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="contain"
+              />
+            </Animated.View>
+          </GestureDetector>
+        </GestureHandlerRootView>
+
+        <ActionBar
+          isFavorite={isFavorite(images[currentIndex])}
+          onFavorite={() => toggleFavorite(images[currentIndex])}
+          onShare={handleShare}
+          onSave={handleSave}
+        />
+      </View>
+      {isLoading && (
+        <View style={styles.loadingOverlay} pointerEvents="none">
+          <ActivityIndicator testID="koading-indicator" size="large" color={colors.activeTint} />
+        </View>
+      )}
+    </>
   );
 };
 
@@ -191,51 +228,51 @@ export default ImageModal;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
   },
   fullImage: {
     width: windowWidth,
     height: windowHeight,
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    pointerEvents: "none",
+    justifyContent: 'center',
+    alignItems: 'center',
+    pointerEvents: 'none',
+    zIndex: 200,
   },
   closeBtn: {
-    position: "absolute",
+    position: 'absolute',
     right: scale(16),
-    bottom: scale(0),
     borderRadius: scale(20),
     width: scale(32),
     height: scale(32),
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeText: {
     fontSize: scale(18),
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   pagination: {
-    alignSelf: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     borderRadius: scale(10),
     paddingHorizontal: scale(12),
     paddingVertical: scale(4),
   },
   paginationText: {
-    color: "white",
+    color: 'white',
     fontSize: scale(14),
-    fontWeight: "500",
+    fontWeight: '500',
   },
 });

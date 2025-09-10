@@ -1,0 +1,42 @@
+# Dependencies
+
+node_modules/
+
+# Build output
+
+.expo/
+dist/
+build/
+
+# Cache directories
+
+.cache/
+.parcel-cache/
+
+# Coverage directory used by tools like istanbul
+
+coverage/
+
+# Logs
+
+\*.log
+
+# Package managers
+
+package-lock.json
+yarn.lock
+
+# Config files
+
+babel.config.js
+metro.config.js
+jest.config.js
+
+# Temp files
+
+temp.txt
+src/utils/temp.\*
+
+# Generated files
+
+\*.tsbuildinfo

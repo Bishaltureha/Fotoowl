@@ -1,5 +1,5 @@
-import React, { createContext, FunctionComponent, useContext, useEffect, useState } from "react";
-import { FavoritesStorage } from "../storage/Storage";
+import React, { createContext, FunctionComponent, useContext, useEffect, useState } from 'react';
+import { FavoritesStorage } from '../storage/Storage';
 
 interface FavoritesContextType {
   favorites: string[];
@@ -23,7 +23,7 @@ export const FavoritesProvider: FunctionComponent<{
         const stored = await FavoritesStorage.getFavorites();
         setFavorites(stored);
       } catch (error) {
-        console.error("Failed to load favorites:", error);
+        console.error('Failed to load favorites:', error);
         setFavorites([]);
       }
     };
@@ -36,20 +36,20 @@ export const FavoritesProvider: FunctionComponent<{
     try {
       await FavoritesStorage.saveFavorites(updated);
     } catch (error) {
-      console.error("Failed to save favorites:", error);
+      console.error('Failed to save favorites:', error);
     }
   };
 
   const toggleFavorite = (imageUrl: string) => {
     if (favorites.includes(imageUrl)) {
-      saveAndUpdate(favorites.filter((item) => item !== imageUrl));
+      saveAndUpdate(favorites.filter(item => item !== imageUrl));
     } else {
       saveAndUpdate([...favorites, imageUrl]);
     }
   };
 
   const removeFavorite = (item: string) => {
-    saveAndUpdate(favorites.filter((fav) => fav !== item));
+    saveAndUpdate(favorites.filter(fav => fav !== item));
   };
 
   const clearAllFavorites = () => {
@@ -79,7 +79,7 @@ export const FavoritesProvider: FunctionComponent<{
 export const useFavorites = () => {
   const ctx = useContext(FavoritesContext);
   if (!ctx) {
-    throw new Error("useFavorites must be used inside FavoritesProvider");
+    throw new Error('useFavorites must be used inside FavoritesProvider');
   }
   return ctx;
 };

@@ -1,12 +1,13 @@
-import { Dimensions, PixelRatio, Platform } from "react-native";
+import { Dimensions, PixelRatio, Platform } from 'react-native';
 
-const { width, height } = Dimensions.get("screen");
-export const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+const { width, height } = Dimensions.get('screen');
+export const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 export const isSmallDevice = width <= 375 && height <= 667;
 
 const BASE_WIDTH = 375;
 const SMALL_DEVICE_SCALE_FACTOR = 0.92;
 
+/* eslint-disable no-unreachable */
 const scale = (size: number) => {
   return size;
   // if (Platform.OS === "ios") {
@@ -20,7 +21,7 @@ const scale = (size: number) => {
   return isSmallDevice ? dim * SMALL_DEVICE_SCALE_FACTOR : dim;
 };
 
-const isAndroid = Platform.OS === "android";
-const isWeb = Platform.OS === "web";
+const isAndroid = Platform.OS === 'android';
+const isWeb = Platform.OS === 'web';
 
 export { isAndroid, isWeb, scale, height as screenHeight, width as screenWidth };

@@ -1,5 +1,5 @@
-import * as React from "react";
-import Svg, { G, Path, SvgProps } from "react-native-svg";
+import * as React from 'react';
+import Svg, { G, Path, SvgProps } from 'react-native-svg';
 /* SVGR has dropped some elements not supported by react-native-svg: style */
 const MainLogo = (props: SvgProps) => (
   <Svg viewBox="0 0 1276 252" width={1276} height={252} {...props}>
@@ -34,14 +34,8 @@ const MainLogo = (props: SvgProps) => (
         id="Ellipse_34"
         d="M778.8 121.4c-5.5 0-10-4.4-10-9.9 0-5.6 4.5-10 10-10s10 4.4 10 10c0 5.5-4.5 9.9-10 9.9"
       />
-      <Path
-        id="Path_16"
-        d="M715.4 48.1 787.8 0s-27.3-.6-44.4 10.7-28 37.4-28 37.4"
-      />
-      <Path
-        id="Path_17"
-        d="M596.6 48.1 524.2 0s27.3-.6 44.4 10.7 28 37.4 28 37.4"
-      />
+      <Path id="Path_16" d="M715.4 48.1 787.8 0s-27.3-.6-44.4 10.7-28 37.4-28 37.4" />
+      <Path id="Path_17" d="M596.6 48.1 524.2 0s27.3-.6 44.4 10.7 28 37.4 28 37.4" />
       <Path
         id="Path_183696"
         d="M1103.4 47.6 1064 179l-38.7-131.4H989l-40 130.3-38.2-130.3h-40.6L925.8 233h41.8l38.5-125.5 37.3 125.5h42.1l55.4-185.4z"
